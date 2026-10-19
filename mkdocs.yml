@@ -15,6 +15,14 @@ plugins:
       redirect_maps:
         'index.md': 'CHUC_NANG.md'
 
+markdown_extensions:
+  - pymdownx.arithmatex:
+      generic: true
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3.2.2/es5/tex-mml-chtml.js
+
 exclude_docs: |
   *
   !/CHUC_NANG.md
@@ -41,3 +49,5 @@ exclude_docs: |
   !/images/ai-hints/23-dijkstra-mle-ai-hint.jpg
   !/images/ai-hints/24-dijkstra-rte-ai-hint.jpg
   !/images/ai-hints/25-dijkstra-ole-ai-hint.jpg
+  !/javascripts/
+  !/javascripts/mathjax.js

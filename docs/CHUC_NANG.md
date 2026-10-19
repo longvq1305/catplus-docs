@@ -1425,8 +1425,18 @@ Các điểm nghẽn về hạ tầng triển khai trước đây đã được 
 
 - **Đường mạng đi ra ngoài (Outbound network):** Dịch vụ `oj-api` đã được cấu hình kết nối mạng ra ngoài có kiểm soát, cho phép kết nối tới các dịch vụ của Google Gemini API;
 - **Chuỗi cấu hình thời gian chờ phân tầng (Timeout hierarchy):** Nhằm giảm thiểu nguy cơ tiến trình máy chủ bị ngắt do vượt quá thời gian chờ khi Gemini đang phân tích các bài toán phức tạp, hệ thống thiết lập chuỗi thời gian chờ có thứ bậc tăng dần:
-  $$\text{Gemini API (62 giây)} < \text{Gunicorn worker (70 giây)} < \text{Nginx proxy (80 giây)} < \text{Redis distributed lock (90 giây)}$$
-  Cơ chế này đảm bảo Gunicorn và Nginx luôn đủ thời gian chờ phản hồi từ Gemini và kịp thời trả dữ liệu có cấu trúc hoặc thông báo lỗi có kiểm soát về trình duyệt, trong khi khóa phân tán Redis chỉ hết hạn sau khi toàn bộ chu trình xử lý đã kết thúc an toàn;
+
+    $$
+    \begin{aligned}
+      \text{Gemini API (62 giây)} \\
+      &< \text{Gunicorn worker (70 giây)} \\
+      &< \text{Nginx proxy (80 giây)} \\
+      &< \text{Redis distributed lock (90 giây)}
+    \end{aligned}
+    $$
+
+    Cơ chế này đảm bảo Gunicorn và Nginx luôn đủ thời gian chờ phản hồi từ Gemini và kịp thời trả dữ liệu có cấu trúc hoặc thông báo lỗi có kiểm soát về trình duyệt, trong khi khóa phân tán Redis chỉ hết hạn sau khi toàn bộ chu trình xử lý đã kết thúc an toàn;
+
 - **Cơ chế chịu lỗi với hai khóa API (Two-key sticky failover):** Hệ thống hỗ trợ cấu hình đồng thời 2 khóa API thông qua biến môi trường `GEMINI_API_KEYS`. Khi gặp sự cố vượt giới hạn hạn mức (mã lỗi HTTP 429 hoặc `RESOURCE_EXHAUSTED`), hệ thống sẽ tự động chuyển đổi (failover) sang khóa dự phòng và duy trì tiếp tục (sticky) trên khóa mới, giúp ngăn ngừa tình trạng gián đoạn dịch vụ khi có lượng truy cập cao. Toàn bộ khóa API đều được bảo mật ở lớp máy chủ, không lưu trong mã nguồn, không truyền xuống trình duyệt và không hiển thị trong tài liệu.
 
 ##### **3.13.3.2 Phương pháp kiểm chứng thực tế trên bài toán thuật toán Dijkstra**
