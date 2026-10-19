@@ -1,0 +1,43 @@
+site_name: CatPlus
+docs_dir: docs
+site_dir: site
+
+nav:
+  - CHUC_NANG.md
+
+theme:
+  name: material
+  language: vi
+
+plugins:
+  - search
+  - redirects:
+      redirect_maps:
+        'index.md': 'CHUC_NANG.md'
+
+exclude_docs: |
+  *
+  !/CHUC_NANG.md
+  !/assets/
+  !/assets/**
+  !/images/
+  !/images/ai-hints/
+  !/images/ai-hints/01-trinh-soan-thao-va-nut-goi-y-ai.jpg
+  !/images/ai-hints/02-xac-nhan-su-dung-ai.jpg
+  !/images/ai-hints/03-goi-y-cho-code-hien-tai.jpg
+  !/images/ai-hints/04-lich-su-va-phien-ban-wa.jpg
+  !/images/ai-hints/05-xu-ly-khi-ai-khong-kha-dung.jpg
+  !/images/ai-hints/06-phien-ban-tle.jpg
+  !/images/ai-hints/07-phien-ban-mle.jpg
+  !/images/ai-hints/08-phien-ban-rte.jpg
+  !/images/ai-hints/09-phien-ban-ce.jpg
+  !/images/ai-hints/10-phien-ban-loi-he-thong.jpg
+  !/images/ai-hints/11-phien-ban-dang-cho-cham.jpg
+  !/images/ai-hints/12-phien-ban-da-ac.jpg
+  !/images/ai-hints/13-lich-su-cac-truong-hop.jpg
+  !/images/ai-hints/14-ai-phan-tich-wa.jpg
+  !/images/ai-hints/21-dijkstra-ce-ai-hint.jpg
+  !/images/ai-hints/22-dijkstra-tle-ai-hint.jpg
+  !/images/ai-hints/23-dijkstra-mle-ai-hint.jpg
+  !/images/ai-hints/24-dijkstra-rte-ai-hint.jpg
+  !/images/ai-hints/25-dijkstra-ole-ai-hint.jpg
