@@ -1427,12 +1427,7 @@ Các điểm nghẽn về hạ tầng triển khai trước đây đã được 
 - **Chuỗi cấu hình thời gian chờ phân tầng (Timeout hierarchy):** Nhằm giảm thiểu nguy cơ tiến trình máy chủ bị ngắt do vượt quá thời gian chờ khi Gemini đang phân tích các bài toán phức tạp, hệ thống thiết lập chuỗi thời gian chờ có thứ bậc tăng dần:
 
     $$
-    \begin{aligned}
-      \text{Gemini API (62 giây)} \\
-      &< \text{Gunicorn worker (70 giây)} \\
-      &< \text{Nginx proxy (80 giây)} \\
-      &< \text{Redis distributed lock (90 giây)}
-    \end{aligned}
+    {\small \text{Gemini API (62 giây)} < \text{Gunicorn worker (70 giây)} < \text{Nginx proxy (80 giây)} < \text{Redis distributed lock (90 giây)}}
     $$
 
     Cơ chế này đảm bảo Gunicorn và Nginx luôn đủ thời gian chờ phản hồi từ Gemini và kịp thời trả dữ liệu có cấu trúc hoặc thông báo lỗi có kiểm soát về trình duyệt, trong khi khóa phân tán Redis chỉ hết hạn sau khi toàn bộ chu trình xử lý đã kết thúc an toàn;
