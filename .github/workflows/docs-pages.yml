@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'docs/CHUC_NANG.md'
+      - 'docs/SUA_LOI_DONG_BO.md'
       - 'docs/images/ai-hints/**'
       - 'docs/javascripts/mathjax.js'
       - 'mkdocs.yml'
