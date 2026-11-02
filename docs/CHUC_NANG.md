@@ -862,7 +862,7 @@ Học viên không gọi trực tiếp Gemini API và không nhìn thấy khóa 
 
 Thông tin chính thức về mô hình được tham chiếu tại [Gemini 3.8 Flash](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash).
 
-#### **3.2.1 Lý do lựa chọn Gemini 3.8 Flash High**
+#### **3.2.1 Lý do lựa chọn Gemini 3.8 Flash High và định hướng hồ sơ tiết kiệm**
 
 Đối tượng học viên chính của trung tâm là học sinh trung học cơ sở. Dựa trên kinh nghiệm sử dụng thực tế, Gemini có khả năng hiểu, phân tích và giải tốt các bài tập lập trình ở mức độ phù hợp với nhóm học viên này.
 
@@ -872,6 +872,9 @@ Kết quả trên cho thấy mô hình đáp ứng được yêu cầu chuyên m
 
 Một lý do quan trọng khác là chi phí sử dụng Gemini thấp hơn đáng kể so với các mô hình AI khác đã được xem xét. Mức chi phí này phù hợp với nhu cầu sử dụng thường xuyên tại trung tâm, giúp triển khai chức năng cho nhiều học viên mà vẫn kiểm soát được chi phí vận hành.
 
+**Định hướng mô hình trong vận hành dài hạn:**
+- *Cấu hình kỹ thuật hiện hành:* Hệ thống đang chạy thực tế với mã mô hình `gemini-3.8-flash` và mức suy luận `high` (`ThinkingLevel.HIGH`).
+- *Hồ sơ tiết kiệm đề xuất (Primary Economy Recommendation):* Nhằm bảo đảm bài toán ngân sách kiểm soát chặt dưới 100 USD/tháng cho quy mô tối đa 100 học viên hoạt động đồng thời (kèm 20% dự phòng lượt gọi nhà cung cấp), hồ sơ mục tiêu khuyến nghị chuyển đổi dài hạn là **Gemini 3.5 Flash-Lite** (chuẩn dữ liệu Text, gói trả phí Tier 1) kết hợp với cấu hình suy luận thấp (`low thinking level`) và trần token đầu ra nghiêm ngặt (phân tích chi tiết tại Mục 3.7.3). Về vòng đời sản phẩm, tài liệu chính thức của Google về Deprecations (xác thực ngày 2026-11-02) quy định quyền truy cập các mô hình thế hệ cũ Gemini 2.5 bị giới hạn chỉ dành cho người dùng cũ đã kích hoạt trước đây; đối với các dự án mới, Google khuyến nghị (recommends) sử dụng dòng 3.5 Flash-Lite hoặc 3.8 Flash thay vì các mô hình cũ đã hạn chế truy cập.
 ### **3.3 Cách chức năng hoạt động**
 
 Nút **Gợi ý với AI** được sử dụng theo hai trường hợp riêng biệt:
@@ -1027,15 +1030,26 @@ AI chỉ nhận xét nguyên nhân và hướng xử lý liên quan đến CE, k
 
 *Hình 3.9. Phiên bản CE hiển thị trực tiếp thông báo của trình biên dịch để AI giải thích đúng lỗi cú pháp đang xảy ra.*
 
-#### **3.4.7 Phiên bản có kết quả lỗi khác**
+#### **3.4.7 Phiên bản có kết quả lỗi khác: OLE, sự cố hạ tầng và kết quả không xác định**
 
-Trường hợp này áp dụng khi phiên bản được chọn có một kết quả lỗi khác WA, TLE, MLE, RTE hoặc CE.
+Trường hợp này áp dụng khi phiên bản được chọn có một kết quả lỗi khác ngoài các nhóm lỗi thường gặp (WA, TLE, MLE, RTE, CE). Hệ thống phân loại chi tiết và áp dụng các nguyên tắc chỉ dẫn chuyên biệt:
 
-AI đọc code, tên kết quả chấm và phần thông tin được phép hiển thị của phiên bản đó. Nếu lỗi có liên quan đến code, AI giải thích ý nghĩa của kết quả, đánh dấu vị trí cần kiểm tra và đưa ra hướng xử lý phù hợp.
+1. **Phiên bản bị OLE (Output Limit Exceeded - Vượt quá giới hạn xuất dữ liệu):**
+   - AI đọc code và thông tin kích thước dữ liệu xuất ra màn hình hoặc tệp tin. AI tập trung phân tích khối lượng dữ liệu xuất ra, chỉ ra các vòng lặp in vô hạn, điều kiện dừng in bị sai, hoặc các câu lệnh in vết phục vụ gỡ lỗi (debug print logs) chưa được dọn dẹp trước khi nộp bài.
+   - AI hướng dẫn học viên kiểm soát số lần xuất dữ liệu và không nhầm lẫn giữa OLE với lỗi sai thuật toán số học hay WA.
+   - *(Minh chứng thực tế xem Hình 3.25 trong Báo cáo thực tế trên bài toán Dijkstra).*
 
-Nếu thông tin không đủ để xác định nguyên nhân, AI chỉ nêu các khả năng cần kiểm tra và không đưa ra kết luận chắc chắn. Nếu kết quả cho thấy lỗi thuộc hệ thống chấm thay vì code của học viên, AI thông báo rằng chưa thể kết luận về bài làm và hướng dẫn học viên thử submit lại hoặc liên hệ gia sư.
+2. **Lỗi hệ thống hoặc sự cố hạ tầng chấm bài (Infrastructure / System Error):**
+   - Áp dụng khi máy chấm DMOJ gặp lỗi nội bộ, sandbox bị gián đoạn, dịch vụ chấm bài bị ngắt kết nối hoặc gói đề thi gặp sự cố.
+   - AI và hệ thống CatPlus **tuyệt đối không quy kết lỗi cho mã nguồn của học viên** và không đề xuất bất kỳ sửa đổi nào trong code. AI giải thích rõ rằng quá trình chấm bài bị gián đoạn do sự cố hạ tầng, đồng thời hướng dẫn học viên đợi hệ thống ổn định để nộp lại bài hoặc liên hệ với gia sư/quản trị viên để được hỗ trợ.
 
-AI chỉ phân tích đúng loại lỗi của phiên bản đang được chọn, không mở rộng sang WA, TLE, MLE, RTE, CE hoặc một loại lỗi không được hệ thống chấm trả về cho phiên bản đó.
+3. **Kết quả chấm không xác định (Unknown verdict):**
+   - Khi thông tin trạng thái trả về không đủ để xác định nguyên nhân hoặc không thuộc các mã chuẩn, AI áp dụng nguyên tắc thận trọng tối đa (conservative evidence-only): chỉ nêu các khả năng khách quan cần kiểm tra, nói rõ việc thiếu dữ liệu căn cứ và không đưa ra bất kỳ kết luận phỏng đoán chủ quan nào.
+
+**Nguyên tắc kỹ thuật cốt lõi trong xử lý các ca chẩn đoán:**
+- **Mỗi yêu cầu chỉ gồm đúng 1 lượt sinh nội dung logic (ONE logical generation) cho ca được chọn:** Mỗi lần học viên nhấn nút gợi ý cho một phiên bản submit hoặc code hiện tại, CatPlus chỉ kích hoạt duy nhất 1 lượt sinh nội dung logic độc lập cho ca chẩn đoán đó, **tuyệt đối không gọi riêng lẻ theo từng testcase** trong bộ kiểm thử của bài toán. Cần lưu ý số lượt thử HTTP vật lý (physical HTTP attempts) thực tế từ SDK có thể tăng thêm do cơ chế retry hoặc sticky failover khi gặp lỗi tạm thời (và toàn bộ các lượt thử vật lý này đều được hạch toán vào dung lượng/ngân sách nhà cung cấp).
+- **Từ chối cục bộ không tiêu tốn API:** Các trạng thái `AC` (bài đã đúng) và trạng thái đang chờ chấm (`QUEUED`, `DISPATCHING`, `RUNNING`) được chặn và xử lý trực tiếp tại máy chủ CatPlus với **0 cuộc gọi Gemini API** và không tiêu tốn hạn mức của học viên.
+- **Ranh giới bảo mật test ẩn:** Chỉ riêng trường hợp `WA` mới được phép đưa vào bằng chứng các test công khai (sample tests) hoặc các test sai đã được chính sách hệ thống cho phép hiển thị (revealed tests). Tất cả các trường hợp lỗi khác (TLE, MLE, RTE, CE, OLE, System Error) **tuyệt đối không bao giờ được gửi dữ liệu đầu vào hoặc kết quả của test ẩn** tới AI.
 
 ![Phiên bản gặp lỗi hệ thống chấm](images/ai-hints/10-phien-ban-loi-he-thong.jpg)
 
@@ -1113,24 +1127,193 @@ AI phải tuân theo các nguyên tắc:
 
 Mỗi lần sử dụng chỉ nên hiển thị từ một đến năm bình luận quan trọng nhất. Bình luận phải ngắn gọn, dễ hiểu và gắn với dòng code có liên quan.
 
-### **3.7 Giới hạn sử dụng**
+### **3.7 Giới hạn sử dụng, chính sách vận hành AI và bài toán chi phí**
 
-Học viên được sử dụng chức năng khi đáp ứng một trong các điều kiện:
+Phần này phân định rõ ranh giới giữa **hành vi kỹ thuật hiện tại của mã nguồn** và **khung chính sách vận hành đề xuất** phục vụ việc đưa vào hoạt động chính thức có kiểm soát ngân sách.
 
-- Chưa từng nhận gợi ý cho Problem đó; lượt đầu tiên được sử dụng ngay khi đã có code, không cần submit trước;
-- Đã qua mười phút kể từ lần nhận gợi ý thành công gần nhất trên cùng Problem;
-- Đã có một lần submit chính thức mới với code thay đổi và lần submit đó đã có kết quả.
+#### **3.7.1 Cơ chế kỹ thuật hiện hành trong mã nguồn (Runtime Limits)**
 
-Các trường hợp không mở thêm lượt sử dụng:
+Trong mã nguồn đang vận hành tại thời điểm rà soát, hệ thống kiểm soát lượt gọi bằng các cơ chế cục bộ sau:
+- **Thời gian chờ cơ bản (Cooldown):** 600 giây (10 phút) áp dụng độc lập cho từng cặp `(học viên, bài toán)`. Một học viên đang trong thời gian chờ ở bài toán A vẫn có thể gửi yêu cầu gợi ý ở bài toán B.
+- **Cơ chế mở khóa sớm (Qualifying Early Unlock):** Trong thời gian 10 phút, thời gian chờ sẽ được gỡ bỏ sớm nếu học viên gửi một lần nộp bài chính thức mới thỏa mãn đồng thời: thuộc cùng bài toán, mã nguồn đã thay đổi (SHA-256 khác với bản nộp trước), và hệ thống chấm đã trả về kết quả hoàn tất (`AC`, `WA`, `TLE`, `MLE`, `RTE`, `CE`).
+- **Khóa chống gửi trùng đồng thời (Inflight Lock):** Khóa phân tán Redis `ai-hint:inflight:{actor_id}:{problem_id}` với thời gian sống (TTL) 90 giây ngăn chặn việc nhấn đúp hoặc mở nhiều tab gửi yêu cầu đồng thời cho cùng một bài toán.
+- **Giới hạn dung lượng tiếp nhận:** Mã nguồn gửi tối đa 262.144 byte (256 KiB) cho tệp mã nguồn và 16.384 ký tự cho văn bản mô tả đề bài.
+- **Từ chối cục bộ không gọi API:** Các trường hợp bài nộp đã AC, bài đang chờ chấm (`QUEUED`, `DISPATCHING`, `RUNNING`) hoặc mã nguồn rỗng được từ chối ngay tại máy chủ CatPlus, tiêu tốn 0 lượt gọi API và 0 token.
+- **Hiện trạng kiểm soát ngân sách và token:** Mã nguồn hiện tại **chưa có** cơ chế giới hạn số lượt tối đa trong ngày theo học viên, chưa có hạn mức trần cho toàn hệ thống, chưa cấu hình tham số `max_output_tokens` trên SDK, chưa có sổ cái (ledger) tích lũy chi phí, và chưa tự động chặn khi chạm ngưỡng ngân sách.
 
-- Chỉ chạy thử code;
-- Submit lại cùng nội dung;
-- Submit mới nhưng vẫn đang chờ chấm;
-- Gửi lại yêu cầu AI khi yêu cầu trước vẫn đang xử lý.
+#### **3.7.2 Khung chính sách sử dụng AI đề xuất cho học viên (Operational Policy Proposal)**
 
-Nếu yêu cầu Gemini API thất bại trước khi nhận được gợi ý, học viên không bị mất lượt.
+Nhằm bảo đảm chất lượng sư phạm, chống lạm dụng, và giữ tổng chi phí không vượt quá 100 USD/tháng cho quy mô tối đa 100 học viên, khung chính sách vận hành chuẩn được đề xuất với 10 quy tắc nghiệp vụ then chốt:
 
-Trong thời gian chờ, nút hiển thị thời gian còn lại. Thời gian mười phút được cấu hình để có thể điều chỉnh sau khi đánh giá thực tế.
+1. **Rào cản pháp lý về độ tuổi theo Điều khoản Google (Age Restriction Rollout Blocker):**
+   - **CẢNH BÁO BẮT BUỘC:** Điều khoản dịch vụ chính thức của Google Gemini API (kiểm tra ngày 2026-11-02 tại [Google Gemini API Terms](https://ai.google.dev/gemini-api/terms)) quy định nghiêm ngặt: người sử dụng API phải từ 18 tuổi trở lên (*"You must be 18 years of age or older to use the APIs... You must not use the Services as part of any API Client that is directed to or likely to be accessed by individuals under the age of 18"*).
+   - Gói trả phí Tier 1 **không** miễn trừ điều khoản này.
+   - Sự đồng ý của phụ huynh (parental consent) đơn thuần **không** được xem là một ngoại lệ hợp đồng trong điều khoản Gemini API hiện tại.
+   - Việc trung tâm hoặc gia sư dùng tài khoản đại diện (proxy) không giải quyết được rào cản pháp lý nếu đối tượng sử dụng cuối là trẻ vị thành niên.
+   - Do đó, việc triển khai trực tiếp cho học sinh phổ thông (< 18 tuổi) hiện đang là một **RÀO CẢN DỪNG TRIỂN KHAI BẮT BUỘC (HARD ROLLOUT BLOCKER)** cho đến khi trung tâm có thỏa thuận doanh nghiệp/giáo dục phù hợp hoặc chuyển sang nhà cung cấp cho phép học sinh dưới 18 tuổi. Mọi mô hình chính sách và dự báo chi phí dưới đây được xây dựng có điều kiện, áp dụng cho đối tượng học viên đủ điều kiện pháp lý hoặc khi rào cản hợp đồng được giải quyết.
+
+2. **Hạn mức sử dụng theo ngày (Daily Cap):**
+   - *Hồ sơ tiết kiệm đề xuất (Primary Economy Recommendation):* Mỗi học viên được nhận tối đa **4 lượt gợi ý mới thành công / ngày** trên toàn hệ thống.
+   - *Hồ sơ mô hình hiện tại (Temporary 3.8 Alternative):* Tối đa **3 lượt gợi ý mới thành công / ngày**.
+   - Hạn mức tính theo ngày lịch, không cộng dồn (no carry-over) số lượt chưa sử dụng sang các ngày tiếp theo.
+
+3. **Giãn cách thời gian toàn cục (Global Spacing / Cooldown):**
+   - Giãn cách tối thiểu **10 phút (600 giây)** giữa hai lần nhận gợi ý thành công.
+   - Thời gian chờ này áp dụng **toàn cục trên tài khoản học viên** (xuyên suốt mọi bài toán), không tách rời theo bài.
+   - Trong chính sách chuẩn đề xuất, **tuyệt đối không áp dụng mở khóa sớm (no early unlock)** kể cả khi học viên nộp bài mới. Quy định này buộc học sinh phải dành thời gian tự suy nghĩ, tự mô phỏng và sửa lỗi sau mỗi gợi ý của AI thay vì nộp liên tục để xin thêm gợi ý.
+
+4. **Giới hạn trên từng bài toán (Across Problems):**
+   - Mỗi học viên được nhận tối đa **2 lượt gợi ý mới / bài toán / ngày** đối với hồ sơ tiết kiệm (hoặc tối đa 3 lượt/bài/ngày đối với hồ sơ 3.8), nằm trong tổng hạn mức 4 lượt/ngày của học viên.
+   - Việc đổi sang bài toán khác **không** làm mới thời gian chờ 10 phút toàn cục và không làm tăng hạn mức ngày của học viên.
+
+5. **Yêu cầu trùng lặp và tái sử dụng kết quả (Semantic Identical Requests / Idempotency):**
+   - Hệ thống chỉ thực hiện khử trùng lặp (dedup) và tái sử dụng kết quả đối với các yêu cầu trùng khớp hoàn toàn về mặt ngữ nghĩa: cùng người học (`actor_id`), cùng phiên bản bài toán (`problem_version_id`), cùng mã nguồn (`source_hash`), cùng chế độ/loại lỗi và chứng cứ chấm bài (`scope`, `verdict`, `evidence fingerprint`), cùng phiên bản prompt và mô hình (`prompt_version`, `model`).
+   - Quy tắc này đảm bảo khi mã nguồn giữ nguyên nhưng có chứng cứ chấm mới từ judge, hoặc khi hệ thống nâng cấp prompt/model, học viên sẽ không bị nhận lại gợi ý cũ lỗi thời (stale hint).
+   - Khi thỏa mãn trùng khớp hoàn toàn các yếu tố định danh trên, hệ thống tái sử dụng kết quả đã lưu trong phiên làm việc/bộ nhớ đệm hoàn toàn **miễn phí, không gọi lại Gemini API và không trừ vào hạn mức ngày** của học viên.
+6. **Xử lý lỗi và phân bổ hạn mức (Errors, Retries & Quota Ledger):**
+   - Các trường hợp từ chối cục bộ tại CatPlus (như bài đã AC, bài đang chờ chấm, code rỗng) hoặc lỗi hạ tầng nội bộ CatPlus hoàn toàn không làm tiêu tốn hạn mức gợi ý thành công của học viên.
+   - Nếu cuộc gọi tới Gemini thất bại do lỗi nhà cung cấp (mã lỗi HTTP 5xx, timeout hoặc rate limit 429), học viên **không bị mất lượt**. Tuy nhiên, lượt gọi lỗi này vẫn tiêu hao tài nguyên và có thể phát sinh chi phí từ phía nhà cung cấp; hệ thống sổ cái (ledger) phải ghi nhận riêng và mô hình ngân sách dự phòng sẵn 20% số lượt gọi nhà cung cấp bổ sung.
+   - Việc kiểm tra và giữ chỗ lượt học viên được thực hiện nguyên tử (atomic reservation) trên Redis để chống tranh chấp trạng thái (race conditions).
+
+7. **Xử lý đa tab và đa thiết bị đồng thời (Concurrent Tabs):**
+   - Hệ thống áp dụng khóa nguyên tử toàn cục: tại một thời điểm, mỗi học viên chỉ được phép có **tối đa đúng 1 yêu cầu AI đang xử lý (in-flight)** trên toàn bộ hệ thống. Mọi thao tác gửi yêu cầu từ tab khác hoặc thiết bị khác của cùng một tài khoản trong thời gian này đều bị từ chối ngay lập tức.
+
+8. **Múi giờ đặt lại hạn mức (Reset Timezone):**
+   - Hạn mức ngày của học viên được đặt lại vào đúng **00:00:00 múi giờ Việt Nam (`Asia/Ho_Chi_Minh`, UTC+7)** mỗi ngày.
+   - *Lưu ý vận hành:* Hạn mức RPD trên Google AI Studio đặt lại vào 00:00:00 múi giờ Thái Bình Dương (Pacific Time, UTC-8/UTC-7). Bộ điều phối vận hành cần theo dõi sự lệch pha này để tránh hiện tượng nghẽn lưu lượng đầu ngày theo giờ Việt Nam.
+
+9. **Công bằng và Bộ điều phối hàng đợi tập trung (Fairness & Global Scheduler):**
+   - Toàn bộ cuộc gọi ra ngoài tới Gemini API được điều tiết qua một hàng đợi dự án chung (shared project queue) với các tham số:
+     - Tốc độ phát yêu cầu: tối đa **10 lượt gọi/phút** (làm mịn lưu lượng: trung bình 6 giây một lượt gọi).
+     - Số yêu cầu đồng thời tối đa: **2 yêu cầu in-flight**.
+     - Trần tối đa ngày: **480 lượt gọi nhà cung cấp/ngày** (tương ứng 400 lượt gợi ý logic cho 100 học viên $\times$ 4 lượt/ngày cộng 20% dự phòng lượt gọi lại).
+     - Trần hiệu dụng thực tế: $\min(\text{mục tiêu trên}, 80\% \text{ dung lượng RPM/TPM/RPD còn lại của dự án})$.
+     - Yêu cầu hạn mức tối thiểu của dự án Google Cloud: $\ge 13$ RPM, $\ge 100.000$ input TPM (để $8.000 \text{ tokens} \times 10 \text{ RPM} = 80.000 \le 80\% \times 100.000$), và $\ge 600$ RPD nếu có giới hạn ngày.
+   - *Lưu ý về nhiều API Keys:* Tất cả các khóa API cấu hình trong cùng một Google Cloud Project **chia sẻ chung toàn bộ hạn mức RPM/TPM/RPD**. Việc cấu hình nhiều key trong cùng project chỉ giúp tự động failover khi có sự cố kỹ thuật cục bộ chứ không làm tăng tổng hạn mức của dự án.
+   - *Hiện tượng đột biến phòng học (Classroom Burst):* Khi một lớp 100 học viên cùng nhấn nút trong vòng 1 phút (tương đương 100 RPM đột biến), với trần điều phối 10 lượt phát yêu cầu/phút và tối đa 2 yêu cầu in-flight, mốc ~10 phút chỉ là chặn dưới lý thuyết về mặt thời gian phát lệnh (theoretical launch lower bound), **chưa bao gồm** độ trễ mạng/mô hình, thời gian thử lại (retries) và nguy cơ hết hạn hàng đợi (queue admission expiry); đây không phải là cam kết SLA về thời gian phản hồi cho toàn bộ lớp học. Tốc độ bình quân cả ngày của 100 học viên là $400 / 1440 \approx 0,278$ RPM.
+   - *Không sử dụng Batch API:* Chế độ Batch API của Gemini là cơ chế xử lý lô bất đồng bộ (trả lời sau nhiều giờ), hoàn toàn không phù hợp với yêu cầu phản hồi tương tác trực tiếp của học viên.
+
+10. **Cơ chế bảo vệ ngân sách và các ngưỡng hành động (Budget Safeguards & Action Thresholds):**
+    - Ngân sách tối đa toàn bộ hệ thống: **100 USD/tháng**.
+    - Phân bổ kiểm soát: **80 USD** dự trữ cho chi phí API Google + **20 USD** dự phòng thuế, phí thanh toán quốc tế và biến động bất định.
+    - Cơ chế đặt chỗ ngân sách nguyên tử (Atomic Budget Reservation): Trước khi thực hiện cuộc gọi API, hệ thống đặt chỗ trước chi phí tối đa (worst-case token cost) vào sổ cái nội bộ; sau khi Gemini phản hồi, hệ thống hoàn ứng lại theo số token thực tế đo được từ `usage_metadata`.
+    - Các ngưỡng cảnh báo tự động: Hệ thống gửi thông báo cảnh báo tới quản trị viên khi chi phí tích lũy trong tháng đạt **50 USD, 65 USD và 75 USD**.
+    - Ngưỡng dừng cứng (Hard Stop): Khi tổng chi phí API chạm **80 USD**, hệ thống tự động từ chối mọi yêu cầu gọi API mới. Khi đó, học viên nhận thông báo tính năng tạm thời đóng cho đến kỳ ngân sách tiếp theo; các bình luận gợi ý cũ đã có trong phiên làm việc vẫn được đọc bình thường.
+    - Thiết lập Spend Cap trên Google AI Studio ở mức 80 USD và phương thức trả trước (prepay backup). Tài liệu thanh toán chính thức của Google ghi nhận độ trễ tổng hợp hóa đơn có thể lên tới ~10 phút (up to ~10 min), do đó cơ chế đặt chỗ nội bộ của CatPlus đóng vai trò điều kiện bảo vệ (guard condition) kiểm soát trước khi gọi API, không phải là cam kết tuyệt đối rằng hóa đơn cuối cùng sẽ không bao giờ có sai số vượt mức.
+
+#### **3.7.3 Mô hình chi phí chi tiết và dự báo ngân sách <= 100 USD/tháng (Cost Forecasting Model)**
+
+##### **3.7.3.1 Công thức tính chi phí và xử lý Token suy luận**
+
+Đơn giá cho một lượt gọi API được tính theo công thức chuẩn:
+
+$$C = \frac{\text{input} \times P_{\text{in}} + \text{total\_output} \times P_{\text{out}}}{10^6}$$
+
+Chi phí dự toán hàng tháng cho toàn hệ thống:
+
+$$\text{Chi phí tháng} = N \times \text{allowance} \times D \times C \times 1,20$$
+
+Trong đó:
+- $N$: Số lượng học viên đăng ký hoạt động ($10, 25, 50, 75, 100$).
+- $\text{allowance}$: Số lượt gợi ý thành công mỗi ngày của một học viên ($4$ lượt đối với mô hình tiết kiệm, $3$ lượt đối với mô hình 3.8).
+- $D$: Số ngày trong tháng ($D = 31$ cho tháng dài nhất/kịch bản xấu nhất; tham chiếu $D = 22$ cho tháng giảng dạy thực tế).
+- $C$: Chi phí API tính cho một lượt gọi (USD).
+- Hệ số $1,20$: Dự phòng bổ sung 20% số lượt gọi nhà cung cấp (provider attempts) do thử lại mạng, failover hoặc lỗi tạm thời.
+
+**Bản chất và rủi ro của Token suy luận (Thinking Tokens):**
+- Theo tài liệu chính thức của Google (kiểm tra ngày 2026-11-02 tại [Google Gemini Tokens](https://ai.google.dev/gemini-api/docs/tokens) và [Google Gemini Thinking Token Limits](https://ai.google.dev/gemini-api/docs/thinking#token-limits)):
+- Đơn giá output ($P_{\text{out}}$) áp dụng cho **toàn bộ số token đầu ra bao gồm cả suy luận ngầm (total output including thoughts)**: $\text{total\_output} = \text{candidates\_token\_count} + \text{thoughts\_token\_count}$.
+- Token suy luận ngầm (`thoughts_token_count`) có thể vượt xa số token hiển thị thực tế (`candidates_token_count`) của bình luận; không áp đặt tỷ lệ cố định khi chưa có dữ liệu đo đạc thực tế.
+- Quy tắc kinh nghiệm 1 token $\approx$ 4 ký tự chỉ là ước tính sơ bộ cho tiếng Anh thông thường; đối với tiếng Việt và mã nguồn lập trình, tỷ lệ thực tế có thể thay đổi và cần được đo lường trực tiếp từ phản hồi API.
+- **CẢNH BÁO KỸ THUẬT QUAN TRỌNG:** Tham số `max_output_tokens` của Gemini bao gồm cả token suy luận. Nếu chỉ ép trần `max_output_tokens` quá thấp (ví dụ 512 hoặc 1024) mà vẫn giữ mức suy luận cao (`high`), mô hình có thể dùng hết toàn bộ ngân sách token cho suy luận nội bộ và trả về chuỗi JSON rỗng hoặc bị cắt cụt (truncated). Khi đó, Google vẫn tính tiền toàn bộ số token đã sinh ra, trong khi học viên không nhận được gợi ý. Do đó, khuyến nghị kỹ thuật là phải **hạ mức suy luận của mô hình xuống mức thấp/tối thiểu (low/minimal thinking)** và đo lường thực nghiệm trên 50-100 mẫu thực tế trước khi áp trần cứng.
+- Các khung token dưới đây là điều kiện đầu vào giả định để lập ngân sách; chất lượng sư phạm thực tế, tỷ lệ rơi vào `unable_to_hint` và tỷ lệ bị cắt cụt token cần được đánh giá thực nghiệm. Các cuộc gọi bị cắt cụt/lỗi phía nhà cung cấp vẫn bị tính phí nhưng không trừ lượt thành công của học viên.
+
+##### **3.7.3.2 Các khung kích thước Token (Token Envelopes)**
+
+Dựa trên cấu trúc đề bài, mã nguồn và phản hồi JSON của CatPlus, ba khung kích thước token được xác định:
+
+1. **Khung tinh gọn (Compact Envelope):** 2.000 input tokens + 300 total output tokens.
+2. **Khung lập kế hoạch định mức (Planning Envelope):** 4.000 input tokens + 512 total output tokens.
+3. **Khung chịu tải tối đa (Stress Hard Envelope):** 8.000 input tokens + 1.024 total output tokens.
+
+*Lưu ý:* Input token bao gồm toàn bộ system prompt, chỉ dẫn chuyên biệt theo lỗi, văn bản đề bài, ví dụ mẫu, mã nguồn học viên đánh số dòng và lược đồ JSON phản hồi.
+
+Đơn giá cho từng khung với mô hình đề xuất **Gemini 3.5 Flash-Lite** (Input: $0,30 USD/1M; Output incl. thoughts: $2,50 USD/1M):
+- $C_{\text{compact}} = (2000 \times 0,30 + 300 \times 2,50) / 10^6 = 0,0013500 \text{ USD/lượt}$
+- $C_{\text{planning}} = (4000 \times 0,30 + 512 \times 2,50) / 10^6 = 0,0024800 \text{ USD/lượt}$
+- $C_{\text{stress}} = (8000 \times 0,30 + 1024 \times 2,50) / 10^6 = 0,0049600 \text{ USD/lượt}$
+
+##### **3.7.3.3 Bảng dự báo chi phí Hồ sơ tiết kiệm đề xuất (Gemini 3.5 Flash-Lite)**
+
+Chính sách: 4 lượt gợi ý/ngày/học viên, tháng kịch bản xấu nhất 31 ngày, dự phòng 20% lượt gọi nhà cung cấp bổ sung ($4 \times 31 \times 1,20 = 148,8$ lượt gọi/học viên/tháng).
+- Chi phí tháng cho 1 học viên (Planning): $148,8 \times 0,0024800 = 0,369024$ USD/học viên/tháng.
+- Chi phí tháng cho 1 học viên (Stress): $148,8 \times 0,0049600 = 0,738048$ USD/học viên/tháng.
+
+| Số học viên ($N$) | Định mức Planning (25% nhu cầu) | Định mức Planning (50% nhu cầu) | Định mức Planning (100% nhu cầu) | Kịch bản tải tối đa Stress (100% nhu cầu) |
+| :--- | :--- | :--- | :--- | :--- |
+| **10** | 0,92256 USD | 1,84512 USD | 3,69024 USD | 7,38048 USD |
+| **25** | 2,30640 USD | 4,61280 USD | 9,22560 USD | 18,45120 USD |
+| **50** | 4,61280 USD | 9,22560 USD | 18,45120 USD | 36,90240 USD |
+| **75** | 6,91920 USD | 13,83840 USD | 27,67680 USD | 55,35360 USD |
+| **100** | 9,22560 USD | 18,45120 USD | **36,90240 USD** | **73,80480 USD** |
+
+*Đánh giá ngân sách:*
+- Ở quy mô trần 100 học viên sử dụng 100% định mức planning, chi phí chỉ là **36,90240 USD/tháng**.
+- Khi toàn bộ 100 học viên đều chạm khung tải tối đa (Stress 100%), dự báo chi phí mô hình đạt **73,80480 USD/tháng**. Đây là kết quả dự báo có điều kiện, cho thấy chi phí API nằm gọn trong hạn mức dự trữ 80 USD và còn dư khoản đệm **26,19520 USD** cho thuế phí nếu các giả định về token envelope, đơn giá nhà cung cấp, hệ số 20% lượt gọi thử lại và ước tính phí phụ trợ được giữ nguyên; dự báo này **không bao gồm** chi phí hạ tầng máy chủ CatPlus, chỉ mang tính ước tính thuế phí, và cơ chế trần cứng hiện **chưa được cài đặt trong mã nguồn**.
+
+##### **3.7.3.4 Tham chiếu kịch bản 22 ngày học (Tháng giảng dạy thực tế)**
+
+Trong các tháng học tiêu chuẩn không học vào cuối tuần (22 ngày học/tháng, $4 \times 22 \times 1,20 = 105,6$ lượt gọi/học viên/tháng):
+- Chi phí 1 học viên (Planning): $105,6 \times 0,0024800 = 0,261888$ USD.
+- Chi phí 1 học viên (Stress): $105,6 \times 0,0049600 = 0,523776$ USD.
+
+| Số học viên ($N$) | Định mức Planning (100% nhu cầu, 22 ngày) | Kịch bản Stress (100% nhu cầu, 22 ngày) |
+| :--- | :--- | :--- |
+| **10** | 2,61888 USD | 5,23776 USD |
+| **25** | 6,54720 USD | 13,09440 USD |
+| **50** | 13,09440 USD | 26,18880 USD |
+| **75** | 19,64160 USD | 39,28320 USD |
+| **100** | **26,18880 USD** | **52,37760 USD** |
+
+##### **3.7.3.5 So sánh đối chiếu với mô hình hiện tại Gemini 3.8 Flash**
+
+Mô hình hiện tại `gemini-3.8-flash` có đơn giá khuyến mãi (đến 31/12/2026): Input $0,75 USD/1M, Output $3,75 USD/1M.
+Đơn giá một lượt gọi trong khung Planning (4.000 in + 1.024 total out):
+
+$$C_{3.8} = \frac{4000 \times 0,75 + 1024 \times 3,75}{10^6} = 0,0068400 \text{ USD/lượt}$$
+
+So sánh các phương án vận hành cho 100 học viên (tháng 31 ngày, +20% retry):
+1. **Phương án tạm thời 3 lượt/ngày với Gemini 3.8 Flash:**
+   - Số lượt gọi: $3 \times 31 \times 1,20 = 111,6$ lượt/học viên/tháng.
+   - Chi phí 1 học viên: $111,6 \times 0,0068400 = 0,763344$ USD.
+   - Tổng chi phí cho 100 học viên: **76,33440 USD** (vừa khít dưới trần dự trữ 80 USD API).
+2. **Nếu áp dụng hạn mức 4 lượt/ngày cho Gemini 3.8 Flash:**
+   - Tổng chi phí cho 100 học viên: $100 \times 148,8 \times 0,0068400 = \mathbf{101,77920 \text{ USD}}$ $\rightarrow$ **VƯỢT TRẦN NGÂN SÁCH 100 USD!**
+3. **Nếu áp dụng 10 lượt/ngày cho Gemini 3.8 Flash:**
+   - Tổng chi phí cho 100 học viên: $100 \times 372 \times 0,0068400 = \mathbf{254,44800 \text{ USD}}$ $\rightarrow$ **VƯỢT XA NGÂN SÁCH!**
+4. **Tác động tăng giá từ ngày 01/01/2027 của Gemini 3.8 Flash:**
+   - Từ ngày 01/01/2027, bảng giá chính thức của Gemini 3.8 Flash tăng gấp đôi (Input $1,50 USD/1M, Output $7,50 USD/1M; đơn giá $C = 0,0136800$ USD/lượt):
+     - Nếu giữ mức 3 lượt/ngày: Chi phí cho 100 học viên sẽ tăng lên **152,66880 USD/tháng** (vượt ngân sách nghiêm trọng).
+     - Để duy trì chi phí $\le 100$ USD khi giữ mô hình 3.8 trong năm 2027, bắt buộc phải giảm hạn mức xuống còn **1 lượt/ngày/học viên** (chi phí: $100 \times 37,2 \times 0,0136800 = 50,88960$ USD) HOẶC chuyển đổi sang mô hình tiết kiệm **Gemini 3.5 Flash-Lite**.
+
+##### **3.7.3.6 Căn cứ vòng đời mô hình và Tài liệu nguồn chính thức**
+
+- **Căn cứ vòng đời và khuyến nghị mô hình:** Mặc dù thế hệ 2.5 có đơn giá rẻ ($0,10 / $0,40), theo tài liệu chính thức của Google về vòng đời mô hình ([Google Gemini Deprecations](https://ai.google.dev/gemini-api/docs/deprecations)), quyền truy cập các mô hình 2.5 đã bị giới hạn chỉ dành cho người dùng cũ đã kích hoạt trước đây; đối với các dự án mới, Google khuyến nghị (recommends) sử dụng dòng 3.5 Flash-Lite hoặc 3.8 Flash. Do đó, việc xây dựng giải pháp lâu dài trên dòng 2.5 là không phù hợp.
+- **Tài liệu nguồn chính thức đối chiếu (xác thực ngày 2026-11-02):**
+  1. Bảng giá chính thức: [Gemini Pricing](https://ai.google.dev/gemini-api/docs/pricing)
+  2. Vòng đời và chính sách ngừng hỗ trợ: [Gemini Deprecations](https://ai.google.dev/gemini-api/docs/deprecations)
+  3. Hạn mức truy vấn (Rate limits): [Gemini Rate Limits](https://ai.google.dev/gemini-api/docs/rate-limits) và [AI Studio Rate Limits](https://aistudio.google.com/rate-limit)
+  4. Thanh toán và nạp tiền trả trước: [Gemini Billing](https://ai.google.dev/gemini-api/docs/billing)
+  5. Đếm token và phương pháp tính: [Gemini Tokens](https://ai.google.dev/gemini-api/docs/tokens)
+  6. Cấu hình suy luận và giới hạn token: [Gemini Thinking Token Limits](https://ai.google.dev/gemini-api/docs/thinking#token-limits)
+  7. Điều khoản dịch vụ và yêu cầu độ tuổi: [Gemini Terms of Service](https://ai.google.dev/gemini-api/terms)
+
+##### **3.7.3.7 Giới hạn giả định và Tuyên bố từ chối trách nhiệm (Assumptions & Disclaimers)**
+
+1. Toàn bộ số liệu dự báo chi phí dựa trên mô hình toán học và các giả định về kích thước token; hiện tại hệ thống CatPlus **chưa có số liệu đo lường thực tế** từ các lượt làm bài của học viên.
+2. Cần thực hiện kiểm chứng thực nghiệm trên 50-100 yêu cầu mẫu đại diện để đo đạc các phân vị token thực tế (P50, P90, P99).
+3. Hiện tại mã nguồn chưa áp dụng các cơ chế kiểm soát token, trần token output, trần ngân sách hoặc hạn mức ngày, nên **KHÔNG ĐƯỢC ngộ nhận** rằng mã nguồn hiện tại đã tự động đảm bảo mức chi phí $\le 100$ USD/tháng nếu chưa bổ sung các bộ điều phối backend này.
+4. Việc tiết kiệm chi phí khi chuyển sang `gemini-3.5-flash-lite` là tính toán số học thuần túy; chất lượng định hướng sư phạm cần được trung tâm thẩm định thực tế trước khi áp dụng chính thức.
 
 ### **3.8 Trạng thái của nút gợi ý**
 
@@ -1267,29 +1450,27 @@ Với yêu cầu tại trình soạn thảo chính, hệ thống chỉ chuẩn b
 
 Với yêu cầu từ lịch sử làm bài, hệ thống chuẩn bị đúng code của phiên bản được chọn, loại lỗi, thông báo chấm bài được phép hiển thị và thông tin công khai của Problem. Code hiện tại và các phiên bản submit khác không được đưa vào yêu cầu.
 
-#### **3.12.5 Sử dụng bộ yêu cầu AI cố định**
+#### **3.12.5 Cấu trúc chỉ dẫn hệ thống chuyên biệt và phiên bản bộ yêu cầu (Prompt Architecture ai-hints-v2)**
 
-Hệ thống duy trì một bộ yêu cầu chung và các bộ yêu cầu riêng cho từng phạm vi như hướng dẫn bước tiếp theo, WA, TLE, MLE, RTE, CE và lỗi khác.
+Hệ thống áp dụng kiến trúc chỉ dẫn hệ thống chuyên biệt phiên bản **`ai-hints-v2`** thay cho quan niệm sử dụng một bộ prompt cố định chung chung. Kiến trúc này phân tách thành hai tầng rõ rệt:
 
-Mỗi lần gọi, hệ thống tự chọn bộ yêu cầu phù hợp rồi ghép với dữ liệu của bài làm. Người vận hành không cần viết lại prompt cho từng yêu cầu và học viên không được nhập prompt tự do.
+1. **Khung an toàn nền tảng bất biến (Common Immutable Safety Base):** Quy định vai trò trợ giảng định hướng (Socratic Tutor), nguyên tắc không giải bài thay học sinh, không cung cấp mã nguồn hoàn chỉnh hoặc giải thuật toán hoàn thiện, không tiết lộ dữ liệu kiểm thử ẩn và cơ chế bảo vệ ranh giới dữ liệu.
+2. **Các chỉ dẫn hệ thống chuyên biệt theo từng phạm vi (Specialized SYSTEM Instructions):**
+   - `CURRENT_CODE`: Định hướng bước tư duy tiếp theo dựa trên code đang soạn thảo, gợi ý tối đa 1–3 câu hỏi hoặc kiểm tra trọng tâm gắn với dòng code, không cảnh báo trước các lỗi chưa xảy ra.
+   - `WA (Wrong Answer)`: Hướng dẫn học sinh lần vết logic, đối chiếu giữa kết quả mong đợi và kết quả thực tế, kiểm tra điều kiện biên và bất biến thuật toán; chỉ sử dụng ví dụ công khai hoặc test sai đã được phép hiển thị, tuyệt đối không tiết lộ test ẩn.
+   - `TLE (Time Limit Exceeded)`: Phân tích độ phức tạp thời gian thuật toán so với giới hạn kích thước dữ liệu vào của đề bài, chỉ ra các vòng lặp xử lý trùng lặp hoặc điều kiện dừng chưa tối ưu.
+   - `MLE (Memory Limit Exceeded)`: Phân tích kích thước cấu trúc dữ liệu, vòng đời cấp phát bộ nhớ và đơn vị đo so với giới hạn bộ nhớ của bài toán.
+   - `RTE (Runtime Error)`: Phân tích các nguy cơ truy cập mảng ngoài phạm vi, chia cho 0, đệ quy tràn ngăn xếp hoặc lỗi con trỏ dựa trên bằng chứng dòng code cụ thể.
+   - `CE (Compile Error)`: Chẩn đoán nguyên nhân gốc rễ đầu tiên từ thông báo biên dịch và gắn nhận xét vào đúng dòng code phát sinh lỗi cú pháp.
+   - `OLE (Output Limit Exceeded)`: Phân tích khối lượng dữ liệu xuất ra, vòng lặp in vô hạn hoặc nhắc nhở loại bỏ các câu lệnh in vết debug log.
+   - `Lỗi hạ tầng / sự cố hệ thống chấm`: Tách biệt hoàn toàn sự cố máy chấm với mã nguồn học viên, tuyệt đối không quy kết lỗi cho code và không yêu cầu sửa code.
+   - `Kết quả không xác định (Unknown verdict)`: Phân tích thận trọng chỉ dựa trên chứng cứ chắc chắn, nêu rõ việc thiếu dữ liệu căn cứ.
 
-Bộ yêu cầu được đánh số phiên bản để có thể kiểm tra, so sánh và quay lại phiên bản trước khi cần. Mọi thay đổi về cách AI phản hồi được thực hiện tập trung tại bộ yêu cầu này.
+##### **3.12.5.1 Đánh giá kiến trúc chỉ dẫn và ranh giới thực thi kỹ thuật**
 
-Bộ yêu cầu phải mô tả đầy đủ phạm vi được phép trả lời, nội dung bị cấm, số lượng bình luận, cách gắn bình luận vào dòng code và cấu trúc dữ liệu cần trả về. Đây là cơ chế chính được sử dụng để kiểm soát nội dung phản hồi của AI.
-
-##### **3.12.5.1 Giới hạn hiện tại của bộ yêu cầu gửi Gemini**
-
-Bộ yêu cầu hiện tại đã quy định được phạm vi trả lời và những nội dung Gemini không được cung cấp. Tuy nhiên, cách thiết kế vẫn còn một số điểm chưa được xác định đầy đủ:
-
-1. **Chưa cá nhân hóa theo trình độ học viên:** Gemini hiện nhận đề bài và code nhưng chưa nhận thông tin về lớp, độ tuổi, kiến thức học viên đã học hoặc mức độ gợi ý phù hợp với từng người. Vì vậy, cùng một đoạn code có thể nhận cách giải thích giống nhau dù năng lực của hai học viên khác nhau.
-2. **Quy tắc chỉ phân tích một phạm vi có thể quá cứng:** Việc chỉ nói về WA, TLE, MLE, RTE hoặc CE giúp gợi ý tập trung, nhưng chưa xác định cách xử lý khi một nguyên nhân nền tảng có liên quan trực tiếp đến nhiều loại lỗi. Cần làm rõ trường hợp nào vẫn phải giữ tuyệt đối một phạm vi và trường hợp nào được phép nhắc ngắn gọn điều kiện liên quan.
-3. **Chưa có mức gợi ý tăng dần:** Mỗi yêu cầu được xử lý độc lập và hệ thống không lưu nội dung gợi ý trước. Nếu học viên vẫn chưa hiểu, AI có thể lặp lại gợi ý tương tự thay vì chuyển từ câu hỏi gợi mở sang giải thích cụ thể hơn.
-4. **Cấu trúc kết quả còn đơn giản:** Gemini chỉ trả số dòng và nội dung bình luận. Kết quả chưa có thông tin về mục đích của bình luận, mức độ chắc chắn hoặc mức độ gợi ý, nên giao diện chưa thể phân biệt rõ câu hỏi gợi mở, cảnh báo và hướng dẫn kiểm tra.
-5. **Chưa có tiêu chí đánh giá chất lượng sư phạm:** Kiểm thử hiện xác nhận đúng phạm vi, đúng cấu trúc và không lộ dữ liệu cấm, nhưng chưa có thang đánh giá thống nhất để xác định một gợi ý có vừa sức, dễ hiểu và thực sự giúp học viên tự suy nghĩ hay không.
-6. **Chưa quy định quy trình duyệt khi thay đổi bộ yêu cầu:** Bộ yêu cầu đã có số phiên bản nhưng chưa xác định ai được phép sửa, cần thử nghiệm trên nhóm bài nào và dựa vào tiêu chí nào để chấp nhận một phiên bản mới.
-
-Những điểm trên không làm thay đổi luồng chức năng đã triển khai, nhưng ảnh hưởng trực tiếp tới chất lượng hướng dẫn khi đưa vào sử dụng thật. Việc hoàn thiện bộ yêu cầu cần cân bằng giữa cá nhân hóa, tính sư phạm, bảo mật và yêu cầu không làm bài thay học viên.
-
+Kiến trúc `ai-hints-v2` giải quyết căn bản các hạn chế của phiên bản trước về tính sư phạm và tính tập trung của gợi ý. Tuy nhiên, cần phân định rõ hai trạng thái:
+1. **Quy chuẩn nghiệp vụ và chỉ dẫn sư phạm đã được đặc tả hoàn chỉnh:** Khung chỉ dẫn chuyên biệt theo từng kết quả chấm đã quy định chi tiết ranh giới nội dung, số lượng bình luận và phương pháp sư phạm cho từng loại lỗi.
+2. **Cơ chế thực thi kỹ thuật tự động vẫn đang ở giai đoạn đề xuất chính sách:** Trong mã nguồn hiện hành, các cơ chế kiểm soát như trần token đầu ra (`max_output_tokens`), sổ cái tích lũy token và chi phí thời gian thực, cũng như hạn mức theo ngày cho từng học viên vẫn chưa được cài đặt trong runtime mà đang được quản lý dưới dạng khuyến nghị chính sách vận hành (như trình bày tại Mục 3.7).
 #### **3.12.6 Gọi Gemini API**
 
 Máy chủ CatPlus gọi Gemini API bằng khóa truy cập được bảo vệ ở phía máy chủ. Trình duyệt của học viên không gọi trực tiếp Gemini và không nhận được khóa truy cập.
