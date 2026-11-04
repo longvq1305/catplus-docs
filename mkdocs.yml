@@ -5,6 +5,7 @@ site_dir: site
 nav:
   - CHUC_NANG.md
   - 'Sửa lỗi và nâng cấp đồng bộ Polygon': SUA_LOI_DONG_BO.md
+  - 'Nâng cấp Trợ giảng AI': BAO_CAO_NANG_CAP_TRO_GIANG_AI.md
 
 theme:
   name: material
@@ -28,6 +29,7 @@ exclude_docs: |
   *
   !/CHUC_NANG.md
   !/SUA_LOI_DONG_BO.md
+  !/BAO_CAO_NANG_CAP_TRO_GIANG_AI.md
   !/assets/
   !/assets/**
   !/images/

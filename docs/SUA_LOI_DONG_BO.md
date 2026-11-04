@@ -1,4 +1,4 @@
-# Báo cáo kỹ thuật: Phân tích nguyên nhân và quy trình xử lý lỗi đồng bộ bài tập
+# Báo cáo kỹ thuật: Phân tích nguyên nhân và quy trình xử lý lỗi đồng bộ bài tập (29/10/2026)
 
 ## 1. Vấn đề phát sinh và nguyên nhân gốc rễ
 Hệ thống CatPlus Online Judge kết nối với nền tảng Polygon để tiếp nhận, quản lý và cập nhật nội dung bài tập cùng dữ liệu chấm thi. Khi người quản trị chỉnh sửa bài tập, lưu lại phiên bản đã chốt (thao tác commit) và tạo tệp nén đầy đủ cho môi trường Linux (gói full package) ở trạng thái sẵn sàng (`READY`), thao tác đồng bộ lại vẫn có thể bị dừng ở trạng thái chờ chốt phiên bản (`WAITING_FOR_COMMIT`), khiến dữ liệu bài tập không thể cập nhật vào hệ thống.

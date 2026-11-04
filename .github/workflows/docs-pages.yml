@@ -7,6 +7,7 @@ on:
     paths:
       - 'docs/CHUC_NANG.md'
       - 'docs/SUA_LOI_DONG_BO.md'
+      - 'docs/BAO_CAO_NANG_CAP_TRO_GIANG_AI.md'
       - 'docs/images/ai-hints/**'
       - 'docs/javascripts/mathjax.js'
       - 'mkdocs.yml'

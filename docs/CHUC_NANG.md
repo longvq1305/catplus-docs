@@ -1,4 +1,4 @@
-# **Tài liệu chức năng nghiệp vụ CatPlus**
+# **Tài liệu chức năng nghiệp vụ CatPlus** (01/10/2026, 05/10/2026, 12/10/2026, 20/10/2026)
 ## **1. Phạm vi tài liệu**
 
 Tài liệu này mô tả những chức năng đã có trong CatPlus theo góc nhìn nghiệp vụ: người dùng có thể làm gì và hệ thống phản hồi như thế nào.
