@@ -1,4 +1,4 @@
-# Báo cáo kỹ thuật: Xử lý sự cố máy chủ bị lợi dụng đào tiền mã hóa và gia cố bảo mật hệ thống
+# Báo cáo kỹ thuật: Xử lý sự cố máy chủ bị lợi dụng đào tiền mã hóa và gia cố bảo mật hệ thống (13/11/2026)
 
 ## 1. Vấn đề phát sinh và phạm vi ảnh hưởng
 Hệ thống CatPlus Online Judge ghi nhận sự cố máy chủ bị xâm nhập và bị sử dụng trái phép để chạy phần mềm đào tiền mã hóa (crypto mining). Theo phản ánh từ các lớp trong quá trình sử dụng hệ thống, một số bài nộp bị treo hoặc không được chấm, khiến học viên phải chờ kết quả và việc theo dõi bài làm bị gián đoạn.
