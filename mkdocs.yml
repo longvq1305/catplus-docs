@@ -31,6 +31,7 @@ exclude_docs: |
   !/CHUC_NANG.md
   !/SUA_LOI_DONG_BO.md
   !/BAO_CAO_NANG_CAP_TRO_GIANG_AI.md
+  !/BAO_MAT_HE_THONG.md
   !/assets/
   !/assets/**
   !/images/
